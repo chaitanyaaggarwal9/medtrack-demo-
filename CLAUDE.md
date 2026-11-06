@@ -15,7 +15,7 @@ This is a learning project. It must NEVER store real patient data. It does not d
 - Payments: Stripe sandbox only (test keys sk_test_ / pk_test_)
 
 ## Commands
-- npm run dev        start locally (netlify dev)
+- npm run dev        start locally (Vite; netlify dev from Week 5)
 - npm run lint       ESLint
 - npm run typecheck  tsc --noEmit
 - npm test           Vitest
@@ -30,4 +30,11 @@ This is a learning project. It must NEVER store real patient data. It does not d
 5. Write or update tests for every change. Run lint, typecheck, test and build before saying a task is done.
 6. Do not add a new npm package without telling me its name, why it is needed, and confirming it is the real, widely used package.
 7. Accessible UI: labels on inputs, keyboard navigation, good contrast.
-8. Git: never push to main, test or dev directly. Work on a feature/<name> branch and open a pull request into dev.
+8. Git branches: main = production, test = staging, dev = integration.
+   - Never commit, push or merge directly to main, test or dev.
+   - Before every commit, run git branch --show-current. If it says
+     main, test or dev, STOP and ask me to create a feature branch.
+   - New work: switch to dev, pull, then create feature/<short-name>.
+   - Push only the feature branch, then open a pull request with
+     base: dev (never main).
+   - Never use git push --force or git reset --hard.
