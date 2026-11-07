@@ -1,34 +1,90 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { mockDoses } from '../data/mockDoses.ts';
-import { countRemaining, sortByTime, type Dose } from '../lib/doses.ts';
+import Disclaimer from '../components/Disclaimer.tsx';
+import { mockMedicines } from '../mocks/medicines.ts';
+import {
+  buildTodayRows,
+  formatLocalTime,
+  localDayKey,
+  msUntilNextLocalMidnight,
+  remainingMessage,
+  type DoseRow,
+  type Medicine,
+} from '../lib/doses.ts';
 
 type TodayPageProps = {
-  doses?: readonly Dose[];
+  medicines?: readonly Medicine[];
 };
 
-function remainingMessage(remaining: number, total: number): string {
-  if (total === 0) return 'No doses planned for today.';
-  const noun = total === 1 ? 'dose' : 'doses';
-  if (remaining === 0) return `All ${total} ${noun} ticked for today.`;
-  return `${remaining} of ${total} ${noun} still to take.`;
-}
+/** Ticks belong to one local calendar day; a new day starts empty. */
+type Ticks = {
+  day: string;
+  takenAt: ReadonlyMap<string, string>;
+};
 
-export default function TodayPage({ doses = mockDoses }: TodayPageProps) {
-  const sorted = useMemo(() => sortByTime(doses), [doses]);
-  const [takenIds, setTakenIds] = useState<ReadonlySet<string>>(
-    () => new Set(),
+const EMPTY_TICKS: ReadonlyMap<string, string> = new Map();
+
+const focusRing =
+  'focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-teal-700';
+
+export default function TodayPage({
+  medicines = mockMedicines,
+}: TodayPageProps) {
+  // "Today" is the user's own calendar day and resets at their midnight.
+  const [today, setToday] = useState(() => localDayKey(new Date()));
+  const [ticks, setTicks] = useState<Ticks>(() => ({
+    day: today,
+    takenAt: EMPTY_TICKS,
+  }));
+  const [announcement, setAnnouncement] = useState('');
+  const pendingFocusId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setToday(localDayKey(new Date())),
+      msUntilNextLocalMidnight(new Date()),
+    );
+    return () => clearTimeout(timer);
+  }, [today]);
+
+  // Move focus after a tick (to Undo) or an undo (back to the checkbox),
+  // so keyboard users never lose their place.
+  useEffect(() => {
+    const id = pendingFocusId.current;
+    if (id === null) return;
+    pendingFocusId.current = null;
+    document.getElementById(id)?.focus();
+  });
+
+  const takenAt = ticks.day === today ? ticks.takenAt : EMPTY_TICKS;
+  const rows = useMemo(
+    () => buildTodayRows(medicines, takenAt),
+    [medicines, takenAt],
   );
+  const remaining = rows.filter((row) => !row.taken).length;
 
-  const remaining = countRemaining(sorted, takenIds);
-
-  function toggle(id: string) {
-    setTakenIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  function tick(row: DoseRow) {
+    const now = new Date();
+    const day = localDayKey(now);
+    const time = formatLocalTime(now);
+    setToday(day);
+    setTicks((prev) => {
+      const next = new Map(prev.day === day ? prev.takenAt : EMPTY_TICKS);
+      next.set(row.key, time);
+      return { day, takenAt: next };
     });
+    setAnnouncement(`${row.name} at ${row.time} marked as taken at ${time}.`);
+    pendingFocusId.current = `undo-${row.key}`;
+  }
+
+  function undo(row: DoseRow) {
+    setTicks((prev) => {
+      const next = new Map(prev.takenAt);
+      next.delete(row.key);
+      return { day: prev.day, takenAt: next };
+    });
+    setAnnouncement(`Tick undone for ${row.name} at ${row.time}.`);
+    pendingFocusId.current = `dose-${row.key}`;
   }
 
   return (
@@ -36,7 +92,7 @@ export default function TodayPage({ doses = mockDoses }: TodayPageProps) {
       <header className="border-b border-slate-200 px-4 py-4 sm:px-6">
         <Link
           to="/"
-          className="font-semibold text-teal-800 underline-offset-4 hover:underline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+          className={`font-semibold text-teal-800 underline-offset-4 hover:underline ${focusRing}`}
         >
           MedTrack Demo
         </Link>
@@ -51,51 +107,80 @@ export default function TodayPage({ doses = mockDoses }: TodayPageProps) {
           aria-live="polite"
           className="mt-2 text-lg text-slate-700"
         >
-          {remainingMessage(remaining, sorted.length)}
+          {remainingMessage(remaining, rows.length)}
+        </p>
+        {/* Separate live region for tick / undo confirmations. */}
+        <p aria-live="polite" className="sr-only" data-testid="announcer">
+          {announcement}
         </p>
 
-        {sorted.length > 0 && (
+        {rows.length === 0 ? (
+          <p className="mt-6">
+            <Link
+              to="/app/medicines/new"
+              className={`font-semibold text-teal-800 underline underline-offset-4 ${focusRing}`}
+            >
+              Add a medicine
+            </Link>
+          </p>
+        ) : (
           <ul className="mt-6 space-y-3" aria-label="Doses in time order">
-            {sorted.map((dose) => {
-              const taken = takenIds.has(dose.id);
-              const inputId = `dose-${dose.id}`;
+            {rows.map((row) => {
+              const inputId = `dose-${row.key}`;
               return (
-                <li key={dose.id}>
+                <li
+                  key={row.key}
+                  className={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border p-4 ${
+                    row.taken
+                      ? 'border-teal-700 bg-teal-50'
+                      : 'border-slate-300 bg-white'
+                  }`}
+                >
+                  <input
+                    id={inputId}
+                    type="checkbox"
+                    checked={row.taken}
+                    // Once ticked, only Undo can remove the tick.
+                    disabled={row.taken}
+                    onChange={() => tick(row)}
+                    className={`size-6 shrink-0 cursor-pointer accent-teal-700 disabled:cursor-default ${focusRing}`}
+                  />
                   <label
                     htmlFor={inputId}
-                    className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-teal-700 ${
-                      taken
-                        ? 'border-teal-700 bg-teal-50'
-                        : 'border-slate-300 bg-white'
-                    }`}
+                    className={`flex flex-1 items-center gap-4 ${row.taken ? '' : 'cursor-pointer'}`}
                   >
-                    <input
-                      id={inputId}
-                      type="checkbox"
-                      checked={taken}
-                      onChange={() => toggle(dose.id)}
-                      className="size-6 shrink-0 accent-teal-700"
-                    />
                     <time
-                      dateTime={dose.time}
+                      dateTime={row.time}
                       className="w-14 shrink-0 font-mono text-lg font-semibold"
                     >
-                      {dose.time}
+                      {row.time}
                     </time>
-                    <span className="flex-1">
-                      <span className="block font-semibold">
-                        {dose.medicine}
-                      </span>
-                      <span className="block text-slate-700">
-                        {dose.amount}
-                      </span>
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${taken ? 'text-teal-800' : 'text-slate-700'}`}
-                    >
-                      {taken ? 'Taken' : 'To take'}
+                    <span>
+                      <span className="block font-semibold">{row.name}</span>
+                      <span className="block text-slate-700">{row.dose}</span>
                     </span>
                   </label>
+                  {row.taken ? (
+                    <span className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-teal-900">
+                        Taken at{' '}
+                        <time dateTime={row.takenAt}>{row.takenAt}</time>
+                      </span>
+                      <button
+                        id={`undo-${row.key}`}
+                        type="button"
+                        onClick={() => undo(row)}
+                        aria-label={`Undo tick for ${row.name} at ${row.time}`}
+                        className={`rounded-md border border-teal-800 bg-white px-3 py-1 text-sm font-semibold text-teal-900 hover:bg-teal-100 ${focusRing}`}
+                      >
+                        Undo
+                      </button>
+                    </span>
+                  ) : (
+                    <span className="text-sm font-medium text-slate-700">
+                      To take
+                    </span>
+                  )}
                 </li>
               );
             })}
@@ -108,12 +193,7 @@ export default function TodayPage({ doses = mockDoses }: TodayPageProps) {
         </p>
       </main>
 
-      <footer className="border-t border-slate-200 bg-slate-100 px-4 py-6 text-center text-sm text-slate-800 sm:px-6">
-        <p>
-          For education only. Not medical advice. In an emergency, call your
-          local emergency number.
-        </p>
-      </footer>
+      <Disclaimer />
     </div>
   );
 }
