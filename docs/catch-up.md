@@ -55,14 +55,28 @@
       and 5 not-set-yet secrets; production deploys only from main
 - [x] 19. Pipeline via feature/pipeline (PR #6); dev deploy ran green
 - [ ] 20. Release dev -> test -> main
-  - PR #7 already merged dev straight into main (skipped test). Production deploy
-    is WAITING for my approval in GitHub Actions.
   - [x] PR #8 (dev -> test) merged 21 Nov 2026; staging deploy green.
-  - [ ] Then a PR test -> main, and approve the production deploy.
-- [ ] 22b. README updated with live site links, features, pages (feature/readme-update)
+  - [x] PR #17 (dev -> test, with README) merged; staging deploy green.
+  - [x] PR #18 (test -> main) merged 21 Nov 2026.
+  - [ ] In GitHub Actions: REJECT the old run "Merge pull request #7" (old code),
+        then APPROVE the run "Merge pull request #18". Then check the production address.
+- [x] 22b. README updated with live site links, features, pages (PR #16)
 - [x] 21. Ruleset protect-main-test-dev: active; main, test, dev; no deletion, no force push,
       PR required (0 approvals), status check "quality"
 - [x] 22. Status badge + "How we ship" in README.md
+
+## Later: METY Master Project Prompt
+
+- Saved in docs/master-prompt.md (21 Nov 2026). NOT started yet.
+- When I say so: check the whole project against it and list what is
+  missing (for example Privacy, Terms, Accessibility, Contact, Security
+  pages, security headers, docs/security.md, dependabot, security.txt).
+
+## Data model (prep for Week 5)
+
+- docs/data-model.md: tables users, medicines, dose_logs (saved 21 Nov 2026)
+- .env.example created (names only); copied to .env (ignored by Git, never committed)
+- docs/demo-data.json: 112 fake rows (3 users, 12 medicines, 97 dose logs, 15-21 Nov 2026)
 
 ## Things only I can do (in the browser)
 
