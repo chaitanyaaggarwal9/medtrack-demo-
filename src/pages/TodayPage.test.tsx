@@ -2,12 +2,12 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import type { Medicine } from '../lib/doses.ts';
 import { mockMedicines } from '../mocks/medicines.ts';
-import AddMedicinePage from './AddMedicinePage.tsx';
+import MedicineFormPage from './MedicineFormPage.tsx';
 import TodayPage from './TodayPage.tsx';
 
 const medicines: Medicine[] = [
-  { id: 1, name: 'Later med', dose: '1 tablet', times: ['18:00'] },
-  { id: 2, name: 'Early med', dose: '2 capsules', times: ['07:30'] },
+  { id: '1', name: 'Later med', dose: '1 tablet', times: ['18:00'] },
+  { id: '2', name: 'Early med', dose: '2 capsules', times: ['07:30'] },
 ];
 
 function renderPage(list: readonly Medicine[] = medicines) {
@@ -15,7 +15,7 @@ function renderPage(list: readonly Medicine[] = medicines) {
     <MemoryRouter initialEntries={['/app']}>
       <Routes>
         <Route path="/app" element={<TodayPage medicines={list} />} />
-        <Route path="/app/medicines/new" element={<AddMedicinePage />} />
+        <Route path="/app/medicines/new" element={<MedicineFormPage />} />
       </Routes>
     </MemoryRouter>,
   );
