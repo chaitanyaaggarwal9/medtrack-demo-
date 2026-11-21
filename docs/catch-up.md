@@ -1,6 +1,7 @@
 # Catch-up checklist (Weeks 1-4)
 
 ## About me and my app
+
 - App name: MedTrack Demo
 - Idea: helps adults who take several medicines a day tick off each dose and see at a glance what is still to take.
 - GitHub username: chaitanyaaggarwal9
@@ -13,14 +14,17 @@
   - main (production): https://medtrack-demo-k7cda.netlify.app
 
 ## Notes
+
 - Catch-up started 21 Nov 2026. A lot was already done; each step was checked.
 - Versions: Git 2.54.0, Node.js v26.12.1, npm 11.20.0
 
 ## Week 1: Setup and my idea
+
 - [x] 1. Git and Node.js installed
 - [x] 2. Product brief (docs/brief.md: all 8 headings, safety rules OK)
 
 ## Week 2: Git, GitHub and my project
+
 - [x] 3. Git name and noreply email set up (already correct)
 - [x] 4. GitHub repo created (Public) and cloned; folder linked to origin
 - [x] 5. Scaffold: React + Vite + TS, Tailwind, Router, ESLint, Prettier, Vitest; strict TS; all checks pass
@@ -34,15 +38,18 @@
       #10 Overdue note, #11 Weekly view, #12 Sign in with Google (+ #13 About page)
 
 ## Week 3: Specs, my AI team and my screens
+
 - [x] 13. AI team agents in .claude/agents (PR #3)
 - [x] 14. User stories + Given/When/Then criteria in Issues #4, #9-#13
-- [ ] 15. Main screens
-  - [x] Today's checklist (PR #5), Add medicine page (in PR #5)
-  - [ ] Edge-case tests on branch feature/today-edge-tests: PR into dev to open/merge
+- [x] 15. Main screens
+  - [x] Today's checklist (PR #5)
+  - [ ] Add medicine page: only a placeholder so far (Issue #9)
+  - [x] Edge-case tests: PR #15 merged into dev
   - [ ] Later: Weekly view (#11), Overdue note (#10) when we build them
-- [ ] 16. About page: built on feature/about-page; PR into dev to review and merge
+- [x] 16. About page: PR #14 merged into dev (Claude reviewed as stand-in buddy; 62 tests pass)
 
 ## Week 4: Put my app on the internet
+
 - [x] 17. Netlify project medtrack-demo-k7cda; Project ID + token saved as GitHub secrets
 - [x] 18. Repo secrets, environments development/staging/production with APP_ENV, APP_URL
       and 5 not-set-yet secrets; production deploys only from main
@@ -50,13 +57,15 @@
 - [ ] 20. Release dev -> test -> main
   - PR #7 already merged dev straight into main (skipped test). Production deploy
     is WAITING for my approval in GitHub Actions.
-  - PR #8 (dev -> test) is OPEN: merge it to deploy staging.
-  - Then a PR test -> main.
+  - [x] PR #8 (dev -> test) merged 21 Nov 2026; staging deploy green.
+  - [ ] Then a PR test -> main, and approve the production deploy.
+- [ ] 22b. README updated with live site links, features, pages (feature/readme-update)
 - [x] 21. Ruleset protect-main-test-dev: active; main, test, dev; no deletion, no force push,
       PR required (0 approvals), status check "quality"
 - [x] 22. Status badge + "How we ship" in README.md
 
 ## Things only I can do (in the browser)
+
 - Dev address shows a Netlify login page: that is Netlify protecting non-production
   deploys. Log in to Netlify in the same browser to see it.
 - Ask my buddy to review the PRs, then merge them.
