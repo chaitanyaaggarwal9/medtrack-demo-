@@ -89,3 +89,74 @@ describe('remainingMessage', () => {
     expect(remainingMessage(1, 1)).toBe('1 of 1 dose still to take.');
   });
 });
+
+describe('buildTodayRows edge cases', () => {
+  const none = new Map<string, string>();
+
+  it('returns no rows for no medicines', () => {
+    expect(buildTodayRows([], none)).toEqual([]);
+  });
+
+  it('returns no rows for a medicine with an empty times array', () => {
+    expect(
+      buildTodayRows([{ id: 1, name: 'x', dose: '1', times: [] }], none),
+    ).toEqual([]);
+  });
+
+  it('skips medicines without times in a mixed list', () => {
+    const rows = buildTodayRows(
+      [
+        { id: 1, name: 'none', dose: '1', times: [] },
+        { id: 2, name: 'one', dose: '1', times: ['09:00'] },
+      ],
+      none,
+    );
+    expect(rows.map((r) => r.key)).toEqual(['2-0900']);
+  });
+
+  it('keeps two same-name medicines at the same time as separate rows, by id', () => {
+    const rows = buildTodayRows(
+      [
+        { id: 5, name: 'Same', dose: 'a', times: ['08:00'] },
+        { id: 2, name: 'same', dose: 'b', times: ['08:00'] },
+      ],
+      none,
+    );
+    expect(rows.map((r) => r.medicineId)).toEqual([2, 5]);
+    expect(rows[0]?.key).not.toBe(rows[1]?.key);
+  });
+
+  it('ignores ticks whose key matches no row', () => {
+    const rows = buildTodayRows(medicines, new Map([['99-0800', '08:00']]));
+    expect(rows.every((r) => !r.taken)).toBe(true);
+  });
+});
+
+describe('remainingMessage edge cases', () => {
+  it('uses singular only when total is 1', () => {
+    expect(remainingMessage(0, 1)).toBe('All 1 dose ticked for today.');
+    expect(remainingMessage(1, 2)).toBe('1 of 2 doses still to take.');
+  });
+
+  it('contains no praise or advice', () => {
+    for (const msg of [
+      remainingMessage(0, 0),
+      remainingMessage(0, 3),
+      remainingMessage(2, 3),
+    ]) {
+      expect(msg).not.toMatch(/well done|great|should|!|good/i);
+    }
+  });
+});
+
+describe('msUntilNextLocalMidnight edge cases', () => {
+  it('is a full day at exactly midnight and 1 ms just before it', () => {
+    const ms = msUntilNextLocalMidnight(new Date(2026, 10, 7, 0, 0, 0, 0));
+    // A full local day (allowing for a DST change on this date in some zones).
+    expect(ms).toBeGreaterThanOrEqual(23 * 3600_000);
+    expect(ms).toBeLessThanOrEqual(25 * 3600_000);
+    expect(
+      msUntilNextLocalMidnight(new Date(2026, 10, 7, 23, 59, 59, 999)),
+    ).toBe(1);
+  });
+});

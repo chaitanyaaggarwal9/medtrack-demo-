@@ -64,12 +64,17 @@ export default function TodayPage({
   const remaining = rows.filter((row) => !row.taken).length;
 
   function tick(row: DoseRow) {
+    // Never re-tick a taken dose (that would overwrite its time); only Undo
+    // can remove a tick.
+    if (row.taken) return;
     const now = new Date();
     const day = localDayKey(now);
     const time = formatLocalTime(now);
     setToday(day);
     setTicks((prev) => {
-      const next = new Map(prev.day === day ? prev.takenAt : EMPTY_TICKS);
+      const base = prev.day === day ? prev.takenAt : EMPTY_TICKS;
+      if (base.has(row.key)) return prev;
+      const next = new Map(base);
       next.set(row.key, time);
       return { day, takenAt: next };
     });

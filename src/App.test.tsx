@@ -25,6 +25,18 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('About this app on the landing page goes to /about', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('link', { name: 'About this app' }));
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'About MedTrack Demo' }),
+    ).toBeInTheDocument();
+  });
+
   it('Get started on the landing page goes to /app', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
