@@ -78,6 +78,23 @@
 - .env.example created (names only); copied to .env (ignored by Git, never committed)
 - docs/demo-data.json: 112 fake rows (3 users, 12 medicines, 97 dose logs, 15-21 Nov 2026)
 
+## Week 5: real API with Neon (feature/neon-api)
+
+- Packages: drizzle-orm, drizzle-kit (dev), @neondatabase/serverless, zod (exact versions)
+- Tables created in my Neon database (db:migrate) and demo data loaded (db:seed)
+- API: /api/medicines, /api/dose-logs, /api/health reports db true/false
+- Screens: Today saves ticks; My medicines (edit/delete); Add/Edit form
+- Tests: 129 + 5 real-database tests; lint, typecheck, build pass
+- [ ] Add DEMO_USER_ID=a0000000-0000-4000-8000-000000000001 to my .env (I type it)
+- [ ] Try it: NPM SCRIPTS > dev:api, open http://localhost:8888/app
+- [ ] PR into dev reviewed and merged
+- [ ] GitHub > development environment: real DATABASE_URL secret + DEMO_USER_ID variable
+- Do NOT release to test/main until sign-in exists (anyone could edit the demo data).
+  Keep DEMO_USER_ID EMPTY in staging and production: then their API refuses requests.
+- Security review (21 Nov 2026): nothing high/medium. Fixed: db:migrate fails on a wrong
+  DATABASE_URL. Follow-ups (low): db:seed needs an extra opt-in; reject big bodies early
+  using Content-Length; limit doseDate to about today +/- 2 days.
+
 ## Things only I can do (in the browser)
 
 - Dev address shows a Netlify login page: that is Netlify protecting non-production

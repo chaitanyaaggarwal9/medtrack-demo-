@@ -9,9 +9,9 @@ import {
 } from './doses.ts';
 
 const medicines: Medicine[] = [
-  { id: 1, name: 'zeta', dose: '1', times: ['13:00'] },
-  { id: 2, name: 'Beta', dose: '1', times: ['20:00', '08:00'] },
-  { id: 3, name: 'alpha', dose: '1', times: ['13:00'] },
+  { id: '1', name: 'zeta', dose: '1', times: ['13:00'] },
+  { id: '2', name: 'Beta', dose: '1', times: ['20:00', '08:00'] },
+  { id: '3', name: 'alpha', dose: '1', times: ['13:00'] },
 ];
 
 describe('buildTodayRows', () => {
@@ -39,7 +39,7 @@ describe('buildTodayRows', () => {
 
   it('keeps text exactly as typed', () => {
     const typed: Medicine[] = [
-      { id: 9, name: '  méd X (night) ', dose: '½ tab', times: ['21:00'] },
+      { id: '9', name: '  méd X (night) ', dose: '½ tab', times: ['21:00'] },
     ];
     const [row] = buildTodayRows(typed, none);
     expect(row?.name).toBe('  méd X (night) ');
@@ -47,10 +47,10 @@ describe('buildTodayRows', () => {
   });
 
   it('marks ticked rows as taken with their tick time', () => {
-    const ticks = new Map([[doseKey(2, '08:00'), '08:12']]);
+    const ticks = new Map([[doseKey('2', '08:00'), '08:12']]);
     const rows = buildTodayRows(medicines, ticks);
-    const morning = rows.find((r) => r.key === doseKey(2, '08:00'));
-    const evening = rows.find((r) => r.key === doseKey(2, '20:00'));
+    const morning = rows.find((r) => r.key === doseKey('2', '08:00'));
+    const evening = rows.find((r) => r.key === doseKey('2', '20:00'));
     expect(morning).toMatchObject({ taken: true, takenAt: '08:12' });
     expect(evening?.taken).toBe(false);
     expect(evening?.takenAt).toBeUndefined();
@@ -99,15 +99,15 @@ describe('buildTodayRows edge cases', () => {
 
   it('returns no rows for a medicine with an empty times array', () => {
     expect(
-      buildTodayRows([{ id: 1, name: 'x', dose: '1', times: [] }], none),
+      buildTodayRows([{ id: '1', name: 'x', dose: '1', times: [] }], none),
     ).toEqual([]);
   });
 
   it('skips medicines without times in a mixed list', () => {
     const rows = buildTodayRows(
       [
-        { id: 1, name: 'none', dose: '1', times: [] },
-        { id: 2, name: 'one', dose: '1', times: ['09:00'] },
+        { id: '1', name: 'none', dose: '1', times: [] },
+        { id: '2', name: 'one', dose: '1', times: ['09:00'] },
       ],
       none,
     );
@@ -117,12 +117,12 @@ describe('buildTodayRows edge cases', () => {
   it('keeps two same-name medicines at the same time as separate rows, by id', () => {
     const rows = buildTodayRows(
       [
-        { id: 5, name: 'Same', dose: 'a', times: ['08:00'] },
-        { id: 2, name: 'same', dose: 'b', times: ['08:00'] },
+        { id: '5', name: 'Same', dose: 'a', times: ['08:00'] },
+        { id: '2', name: 'same', dose: 'b', times: ['08:00'] },
       ],
       none,
     );
-    expect(rows.map((r) => r.medicineId)).toEqual([2, 5]);
+    expect(rows.map((r) => r.medicineId)).toEqual(['2', '5']);
     expect(rows[0]?.key).not.toBe(rows[1]?.key);
   });
 

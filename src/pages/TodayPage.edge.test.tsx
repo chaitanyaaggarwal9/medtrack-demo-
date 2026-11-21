@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import type { Medicine } from '../lib/doses.ts';
-import AddMedicinePage from './AddMedicinePage.tsx';
+import MedicineFormPage from './MedicineFormPage.tsx';
 import TodayPage from './TodayPage.tsx';
 
 function renderPage(list: readonly Medicine[]) {
@@ -9,7 +9,7 @@ function renderPage(list: readonly Medicine[]) {
     <MemoryRouter initialEntries={['/app']}>
       <Routes>
         <Route path="/app" element={<TodayPage medicines={list} />} />
-        <Route path="/app/medicines/new" element={<AddMedicinePage />} />
+        <Route path="/app/medicines/new" element={<MedicineFormPage />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -26,8 +26,8 @@ function status() {
 }
 
 const twoTimes: Medicine[] = [
-  { id: 1, name: 'Twice med', dose: '1 tablet', times: ['20:00', '08:00'] },
-  { id: 2, name: 'Once med', dose: '5 ml', times: ['13:00'] },
+  { id: '1', name: 'Twice med', dose: '1 tablet', times: ['20:00', '08:00'] },
+  { id: '2', name: 'Once med', dose: '5 ml', times: ['13:00'] },
 ];
 
 beforeEach(() => {
@@ -56,7 +56,7 @@ describe('TodayPage: no medicines / no times', () => {
   });
 
   it('a medicine with an empty times array produces no rows (empty state)', () => {
-    renderPage([{ id: 1, name: 'No times', dose: '1 tablet', times: [] }]);
+    renderPage([{ id: '1', name: 'No times', dose: '1 tablet', times: [] }]);
     expect(status()).toHaveTextContent('No doses planned for today.');
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.queryByText('No times')).not.toBeInTheDocument();
@@ -67,10 +67,10 @@ describe('TodayPage: no medicines / no times', () => {
 
   it('a mix of medicines with and without times only lists the timed ones', () => {
     renderPage([
-      { id: 1, name: 'Empty one', dose: '1', times: [] },
-      { id: 2, name: 'Timed one', dose: '1', times: ['09:00'] },
-      { id: 3, name: 'Empty two', dose: '1', times: [] },
-      { id: 4, name: 'Timed two', dose: '1', times: ['07:00', '21:00'] },
+      { id: '1', name: 'Empty one', dose: '1', times: [] },
+      { id: '2', name: 'Timed one', dose: '1', times: ['09:00'] },
+      { id: '3', name: 'Empty two', dose: '1', times: [] },
+      { id: '4', name: 'Timed two', dose: '1', times: ['07:00', '21:00'] },
     ]);
     const texts = rows().map((li) => li.textContent);
     expect(texts).toHaveLength(3);
@@ -109,7 +109,7 @@ describe('TodayPage: all taken', () => {
   });
 
   it('uses singular grammar for a single dose', () => {
-    renderPage([{ id: 1, name: 'Solo', dose: '1 tablet', times: ['09:00'] }]);
+    renderPage([{ id: '1', name: 'Solo', dose: '1 tablet', times: ['09:00'] }]);
     expect(status()).toHaveTextContent(/^1 of 1 dose still to take\.$/);
     fireEvent.click(screen.getByRole('checkbox'));
     expect(status()).toHaveTextContent(/^All 1 dose ticked for today\.$/);
@@ -214,8 +214,8 @@ describe('TodayPage: untick (Undo)', () => {
 describe('TodayPage: names and text', () => {
   it('two medicines with identical names at the same time get two rows and distinct checkboxes', () => {
     renderPage([
-      { id: 7, name: 'Same name', dose: 'dose seven', times: ['08:00'] },
-      { id: 3, name: 'Same name', dose: 'dose three', times: ['08:00'] },
+      { id: '7', name: 'Same name', dose: 'dose seven', times: ['08:00'] },
+      { id: '3', name: 'Same name', dose: 'dose three', times: ['08:00'] },
     ]);
     const boxes = screen.getAllByRole('checkbox', { name: /08:00.*Same name/ });
     expect(boxes).toHaveLength(2);
@@ -232,10 +232,10 @@ describe('TodayPage: names and text', () => {
 
   it('orders same-time names A–Z ignoring case', () => {
     renderPage([
-      { id: 1, name: 'banana', dose: '1', times: ['08:00'] },
-      { id: 2, name: 'Cherry', dose: '1', times: ['08:00'] },
-      { id: 3, name: 'apple', dose: '1', times: ['08:00'] },
-      { id: 4, name: 'Apricot', dose: '1', times: ['08:00'] },
+      { id: '1', name: 'banana', dose: '1', times: ['08:00'] },
+      { id: '2', name: 'Cherry', dose: '1', times: ['08:00'] },
+      { id: '3', name: 'apple', dose: '1', times: ['08:00'] },
+      { id: '4', name: 'Apricot', dose: '1', times: ['08:00'] },
     ]);
     const names = rows().map(
       (li) => li.querySelector('span.font-semibold')?.textContent,
@@ -246,7 +246,7 @@ describe('TodayPage: names and text', () => {
   it('renders text exactly as typed, including whitespace and special characters', () => {
     renderPage([
       {
-        id: 1,
+        id: '1',
         name: '  Méd X (night) & co ',
         dose: '½ tab — "with" food',
         times: ['21:00'],
@@ -265,7 +265,7 @@ describe('TodayPage: names and text', () => {
   it('renders HTML-like strings as text, not markup', () => {
     const evil = '<img src=x onerror="alert(1)"><b>bold</b>';
     renderPage([
-      { id: 1, name: evil, dose: '<script>x()</script>', times: ['09:00'] },
+      { id: '1', name: evil, dose: '<script>x()</script>', times: ['09:00'] },
     ]);
     const li = rows()[0]!;
     expect(li.querySelector('img')).toBeNull();
