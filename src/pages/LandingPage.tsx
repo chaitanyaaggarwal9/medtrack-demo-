@@ -36,6 +36,14 @@ export default function LandingPage() {
           >
             Get started
           </Link>
+          <p className="mt-4">
+            <Link
+              to="/about"
+              className="font-semibold text-teal-800 underline hover:text-teal-900 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+            >
+              About this app
+            </Link>
+          </p>
         </section>
 
         <section
