@@ -1,10 +1,12 @@
 # CLAUDE.md (project memory for Claude Code: keep it short and true)
 
 ## Product
+
 MedTrack Demo: helps adults who take several medicines a day tick off each dose and see at a glance what is still to take.
 This is a learning project. It must NEVER store real patient data. It does not diagnose or give medical advice; it shows a disclaimer.
 
 ## Stack
+
 - Frontend: React + Vite + TypeScript (strict) + Tailwind CSS + React Router
 - Backend: Netlify Functions v2 in netlify/functions (TypeScript), routed with config.path under /api/*
 - Database: Neon Postgres via Drizzle ORM; schema in src/db/schema.ts
@@ -15,14 +17,20 @@ This is a learning project. It must NEVER store real patient data. It does not d
 - Payments: Stripe sandbox only (test keys sk_test_ / pk_test_)
 
 ## Commands
-- npm run dev        start locally (Vite; netlify dev from Week 5)
-- npm run lint       ESLint
-- npm run typecheck  tsc --noEmit
-- npm test           Vitest
-- npm run build      production build
-- npm run db:generate / npm run db:migrate   Drizzle migrations
+
+- npm run dev start the frontend only (Vite, http://localhost:5173)
+- npm run dev:api frontend + /api functions (netlify dev, http://localhost:8888; reads .env)
+- npm run lint ESLint
+- npm run typecheck tsc --noEmit
+- npm test Vitest
+- npm run build production build
+- npm run db:generate / npm run db:migrate Drizzle migrations
+- npm run db:seed load docs/demo-data.json (fake data; refuses in production)
+- npm run test:db real-database ownership tests (needs DATABASE_URL)
+- Until sign-in: every API request acts as DEMO_USER_ID via getCurrentUserId() in netlify/lib/current-user.ts
 
 ## Rules (always follow)
+
 1. Work in small steps. Explore -> Plan -> Code -> Verify -> Commit.
 2. Never read, print or commit .env files or secrets. Secrets come from environment variables only. Update .env.example with NAMES only.
 3. Every API route: validate input with Zod, check the logged-in user, and only return rows that belong to that user.

@@ -1,11 +1,14 @@
 import type { Config } from '@netlify/functions';
+import { pingDb } from '../lib/db.ts';
 
-// GET /api/health: a tiny check that the API is up and which environment
-// it runs in. It returns no user or health data.
+// GET /api/health: is the API up, which environment is it, and can it
+// reach the database (true/false only, never error details).
+// It returns no user or health data.
 export default async (): Promise<Response> => {
   return Response.json({
     status: 'ok',
-    env: process.env.APP_ENV ?? 'local',
+    env: process.env.APP_ENV || 'local',
+    db: await pingDb(),
   });
 };
 

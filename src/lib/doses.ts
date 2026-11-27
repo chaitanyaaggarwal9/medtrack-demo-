@@ -1,6 +1,6 @@
 /** A medicine as the user typed it. Text fields are shown exactly as typed. */
 export type Medicine = {
-  id: number;
+  id: string;
   name: string;
   /** Amount to take, e.g. "1 tablet". */
   dose: string;
@@ -12,7 +12,7 @@ export type Medicine = {
 export type DoseRow = {
   /** Stable key for this medicine + time, e.g. "3-0800". */
   key: string;
-  medicineId: number;
+  medicineId: string;
   name: string;
   dose: string;
   time: string;
@@ -21,7 +21,7 @@ export type DoseRow = {
   takenAt?: string;
 };
 
-export function doseKey(medicineId: number, time: string): string {
+export function doseKey(medicineId: string, time: string): string {
   return `${medicineId}-${time.replace(':', '')}`;
 }
 
@@ -54,7 +54,7 @@ export function buildTodayRows(
       // Zero-padded "HH:MM" strings sort correctly as plain text.
       a.time.localeCompare(b.time) ||
       a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) ||
-      a.medicineId - b.medicineId,
+      a.medicineId.localeCompare(b.medicineId),
   );
 }
 
