@@ -20,5 +20,12 @@
     "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "netlify/functions", "tests"]
+  "include": [
+    "vite.config.ts",
+    "drizzle.config.ts",
+    "netlify",
+    "scripts",
+    "src/db",
+    "tests"
+  ]
 }

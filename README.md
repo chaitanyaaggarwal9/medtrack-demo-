@@ -47,7 +47,8 @@ The `test` and `dev` sites are protected by Netlify: log in to Netlify to see th
 - **Tests:** Vitest + React Testing Library
 - **Quality:** ESLint + Prettier
 - **CI/CD:** GitHub Actions deploys to Netlify
-- **Coming later:** Neon Postgres + Drizzle, Zod, Sign in with Google, Turnstile, PostHog, Stripe (sandbox)
+- **Database:** Neon Postgres + Drizzle ORM (schema in `src/db/schema.ts`, design in [docs/data-model.md](docs/data-model.md)); Zod validates every input
+- **Coming later:** Sign in with Google, Turnstile, PostHog, Stripe (sandbox)
 
 ## How we ship
 
@@ -61,9 +62,15 @@ Secrets live only in GitHub (Settings → Secrets and variables → Actions), ne
 
 ## Run it locally
 
+1. Copy `.env.example` to `.env` and fill in `DATABASE_URL` (from Neon) and
+   `DEMO_USER_ID=a0000000-0000-4000-8000-000000000001`. Never commit `.env`.
+2. Then:
+
 ```bash
 npm ci
-npm run dev        # http://localhost:5173
+npm run db:migrate   # create the tables
+npm run db:seed      # load the fake demo data (docs/demo-data.json)
+npm run dev:api      # app + API at http://localhost:8888
 ```
 
 | Command             | What it does                                  |

@@ -12,14 +12,20 @@ import {
   type Medicine,
 } from '../lib/doses.ts';
 
-type TodayPageProps = {
-  medicines?: readonly Medicine[];
-};
-
 /** Ticks belong to one local calendar day; a new day starts empty. */
-type Ticks = {
+export type Ticks = {
   day: string;
   takenAt: ReadonlyMap<string, string>;
+};
+
+type TodayPageProps = {
+  medicines?: readonly Medicine[];
+  /** Ticks already saved (from the API). */
+  initialTicks?: Ticks;
+  /** Save a tick. If it throws, the tick is taken back and an error shown. */
+  onTick?: (row: DoseRow, day: string) => Promise<void>;
+  /** Remove a saved tick. If it throws, the tick comes back. */
+  onUndo?: (row: DoseRow, day: string) => Promise<void>;
 };
 
 const EMPTY_TICKS: ReadonlyMap<string, string> = new Map();
@@ -29,14 +35,18 @@ const focusRing =
 
 export default function TodayPage({
   medicines = mockMedicines,
+  initialTicks,
+  onTick,
+  onUndo,
 }: TodayPageProps) {
   // "Today" is the user's own calendar day and resets at their midnight.
   const [today, setToday] = useState(() => localDayKey(new Date()));
-  const [ticks, setTicks] = useState<Ticks>(() => ({
-    day: today,
-    takenAt: EMPTY_TICKS,
-  }));
+  const [ticks, setTicks] = useState<Ticks>(
+    () => initialTicks ?? { day: today, takenAt: EMPTY_TICKS },
+  );
   const [announcement, setAnnouncement] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const saved = onTick !== undefined;
   const pendingFocusId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -79,17 +89,47 @@ export default function TodayPage({
       return { day, takenAt: next };
     });
     setAnnouncement(`${row.name} at ${row.time} marked as taken at ${time}.`);
+    setSaveError('');
     pendingFocusId.current = `undo-${row.key}`;
+
+    onTick?.(row, day).catch(() => {
+      // Saving failed: take the tick back so the screen matches the data.
+      setTicks((prev) => {
+        if (prev.day !== day || !prev.takenAt.has(row.key)) return prev;
+        const next = new Map(prev.takenAt);
+        next.delete(row.key);
+        return { day, takenAt: next };
+      });
+      setSaveError(
+        `Could not save the tick for ${row.name} at ${row.time}. Please try again.`,
+      );
+    });
   }
 
   function undo(row: DoseRow) {
+    const day = ticks.day;
+    const previousTime = row.takenAt;
     setTicks((prev) => {
       const next = new Map(prev.takenAt);
       next.delete(row.key);
       return { day: prev.day, takenAt: next };
     });
     setAnnouncement(`Tick undone for ${row.name} at ${row.time}.`);
+    setSaveError('');
     pendingFocusId.current = `dose-${row.key}`;
+
+    onUndo?.(row, day).catch(() => {
+      // Undo failed: put the tick back.
+      setTicks((prev) => {
+        if (prev.day !== day || previousTime === undefined) return prev;
+        const next = new Map(prev.takenAt);
+        next.set(row.key, previousTime);
+        return { day, takenAt: next };
+      });
+      setSaveError(
+        `Could not undo the tick for ${row.name} at ${row.time}. Please try again.`,
+      );
+    });
   }
 
   return (
@@ -118,6 +158,14 @@ export default function TodayPage({
         <p aria-live="polite" className="sr-only" data-testid="announcer">
           {announcement}
         </p>
+        {saveError && (
+          <p
+            role="alert"
+            className="mt-4 rounded-lg border border-red-800 bg-red-50 p-3 font-medium text-red-900"
+          >
+            {saveError}
+          </p>
+        )}
 
         {rows.length === 0 ? (
           <p className="mt-6">
@@ -192,9 +240,21 @@ export default function TodayPage({
           </ul>
         )}
 
+        {saved && rows.length > 0 && (
+          <p className="mt-6">
+            <Link
+              to="/app/medicines"
+              className={`font-semibold text-teal-800 underline underline-offset-4 ${focusRing}`}
+            >
+              Manage medicines
+            </Link>
+          </p>
+        )}
+
         <p className="mt-6 text-sm text-slate-700">
-          Sample data only. Ticks are not saved yet and reset when you reload
-          the page.
+          {saved
+            ? 'Demo data only. Ticks are saved for the demo user.'
+            : 'Sample data only. Ticks are not saved yet and reset when you reload the page.'}
         </p>
       </main>
 
